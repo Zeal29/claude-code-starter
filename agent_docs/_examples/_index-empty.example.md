@@ -1,5 +1,13 @@
 # Project Work Index
 
+<!-- 
+╔═══════════════════════════════════════════════════════════════════╗
+║  EXAMPLE FILE: This shows what _index.md looks like when EMPTY    ║
+║  Location in real project: docs/_index.md                         ║
+║  Copy this when starting fresh or resetting the project           ║
+╚═══════════════════════════════════════════════════════════════════╝
+-->
+
 ## Active Epics
 | ID | Name | Status | Progress | Active Task | External ID |
 |----|------|--------|----------|-------------|-------------|
@@ -35,16 +43,13 @@ next_standalone_task: T001
 <!-- Configure which external system you use -->
 ```yaml
 system: none  # Options: jira, linear, github, notion, none
-project_key: ""  # Your project prefix (e.g., PROJ, AUTH)
+project_key: ""  # Your project prefix (e.g., PROJ, AUTH, etc.)
 ```
 
-## Progressive Disclosure
+## Progressive Disclosure Note
 <!--
-This file is Layer 1 - Claude reads this first for work overview.
-- Shows summary of ALL epics and tasks (no details)
-- To see details, Claude reads specific *-context.md files (Layer 2)
-- Supporting files (Research/, Archive/) are Layer 3
-
-For examples of populated index, see:
-→ agent_docs/_examples/_index-with-data.example.md
+This file is Layer 1 - always read first for work overview.
+- Shows summary of ALL epics and tasks
+- Does NOT contain details (those are in *-context.md files)
+- Claude reads this, then loads specific context files as needed
 -->

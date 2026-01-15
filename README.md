@@ -71,6 +71,11 @@ project-root/
 │       └── testing.md             # Loaded for test files
 │
 ├── agent_docs/                    # Progressive disclosure reference docs
+│   ├── work-management-system.md  # Full guide for epics/tasks/drafts
+│   ├── _examples/                 # Example files showing populated structure
+│   │   ├── _index-empty.example.md
+│   │   ├── _index-with-data.example.md
+│   │   └── EXXX-example-feature/  # Complete example epic
 │   ├── architecture.md
 │   ├── database-schema.md
 │   ├── api-patterns.md
@@ -91,6 +96,14 @@ project-root/
     └── tasks/                     # Standalone tasks (not in epics)
         └── T###-name/
 ```
+
+### Learning the Structure
+
+To see what populated files look like, check the examples:
+- **Empty project**: `agent_docs/_examples/_index-empty.example.md`
+- **Active project**: `agent_docs/_examples/_index-with-data.example.md`  
+- **Complete epic**: `agent_docs/_examples/EXXX-example-feature/`
+- **Full guide**: `agent_docs/work-management-system.md`
 
 ---
 
