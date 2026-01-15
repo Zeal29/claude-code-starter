@@ -38,9 +38,33 @@ pnpm lint:fix     # auto-fix linting
 - Auth flow → `@agent_docs/auth-flow.md`
 - Component conventions → `@agent_docs/component-guide.md`
 
-## Task Context
-- Current task context → check `docs/tasks/` for active task files
-- Epic tracking → check `docs/epics/` for long-running features
+## Task Context Management
+**Current task file**: `docs/tasks/current-task.md`
+
+### Starting a New Task
+1. Clear or archive previous content in `docs/tasks/current-task.md`
+2. Fill in: Objective, Requirements, Relevant Files, Approach
+3. Work on task, updating Progress Log after major steps
+
+### During Work
+- Check off completed requirements
+- Add discoveries to Progress Log with date
+- Document assumptions as they arise
+- Add open questions to Unanswered Questions section
+
+### Before Ending Session / Running /clear
+**ALWAYS** update `docs/tasks/current-task.md` with:
+- Current status (what's working, what's not)
+- Next steps to continue
+- Any blockers or decisions needed
+
+### Resuming Work
+Start with: "Read @docs/tasks/current-task.md and continue from where we left off"
+
+### Completing a Task
+1. Mark status as 🟢 Complete
+2. Move file to `docs/tasks/archive/[DATE]-[task-name].md` (optional)
+3. Clear current-task.md for next task
 
 ## Debugging Protocol
 When debugging:

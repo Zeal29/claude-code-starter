@@ -21,14 +21,101 @@ Optimized project structure for Claude Code CLI with agentic workflows, sub-agen
 │   ├── commands/             # Custom slash commands
 │   │   ├── dev/              # /project:dev:* commands
 │   │   ├── git/              # /project:git:* commands
+│   │   ├── task/             # /project:task:* commands
 │   │   └── docs/             # /project:docs:* commands
 │   ├── agents/               # Sub-agent definitions
 │   └── rules/                # Auto-loaded rule files (scoped)
 ├── agent_docs/               # Progressive disclosure docs
 └── docs/
     ├── epics/                # Long-running feature tracking
-    └── tasks/                # Individual task context
+    └── tasks/                # Task context management
+        ├── current-task.md   # Active task context
+        └── archive/          # Completed tasks
 ```
+
+## Task Context System
+
+The most important feature for maintaining context across sessions.
+
+### The Problem
+Claude Code sessions are ephemeral. When you `/clear` or start a new session, context is lost. For multi-session tasks, you waste tokens re-explaining what you're doing.
+
+### The Solution
+`docs/tasks/current-task.md` — a living document that tracks:
+- What you're trying to accomplish
+- Current progress (checkboxes)
+- Decisions made
+- Next steps
+- Open questions
+
+### Workflow
+
+**Starting a new task:**
+```
+/project:task:new implement user authentication
+```
+Claude creates fresh context file, breaks down requirements, identifies relevant files.
+
+**During work:**
+Claude checks off requirements as completed, logs progress, documents assumptions.
+
+**Before ending session:**
+```
+/project:task:save
+```
+Claude updates context file with current state, next steps, blockers.
+
+**Resuming next session:**
+```
+/project:task:resume
+```
+Claude reads context, summarizes where you left off, asks what to do next.
+
+### Manual Usage
+You can also manage context manually:
+- Edit `docs/tasks/current-task.md` directly
+- Tell Claude: "Read @docs/tasks/current-task.md and continue"
+- Tell Claude: "Update the task context with what we just did"
+
+### Task File Structure
+```markdown
+# Current Task
+
+## Context
+**Created**: 2025-01-15
+**Status**: 🟡 In Progress
+**Epic**: docs/epics/auth-system.md (if part of larger feature)
+
+## Objective
+Implement password reset flow
+
+## Requirements
+- [x] Create reset token generation
+- [x] Build email sending service
+- [ ] Create reset password page
+- [ ] Add token validation endpoint
+
+## Relevant Files
+- src/lib/auth.ts - existing auth utilities
+- src/app/api/auth/ - auth API routes
+
+## Progress Log
+### Session 2025-01-15
+- Created token generation with 1hr expiry
+- Set up SendGrid integration
+- **Current State**: Email sending works
+- **Next Step**: Build reset password UI
+- **Blocker**: None
+
+## Assumptions
+- Using SendGrid for email (confirmed with user)
+- Tokens expire after 1 hour
+
+## Unanswered Questions
+- [ ] Should we rate limit reset requests?
+```
+
+---
 
 ## How It Works
 
@@ -38,6 +125,7 @@ Core project info Claude needs for every task:
 - Critical rules (ALWAYS/NEVER)
 - Common commands
 - References to deeper docs
+- Task context management instructions
 
 **Keep under 300 lines** - move details to agent_docs/
 
@@ -53,6 +141,15 @@ scope: "**/*.{ts,tsx}"
 ...
 ```
 
+| File | Scope | When Loaded |
+|------|-------|-------------|
+| general.md | (none) | Always |
+| typescript.md | `**/*.{ts,tsx}` | TS/TSX files |
+| nextjs.md | `src/app/**/*` | Next.js app router |
+| nodejs.md | `src/api/**/*` | Backend code |
+| python.md | `**/*.py` | Python files |
+| testing.md | `**/*.{test,spec}.*` | Test files |
+
 ### agent_docs/ (Progressive Disclosure)
 Deep reference docs Claude reads **only when needed**:
 - Database schemas
@@ -61,39 +158,54 @@ Deep reference docs Claude reads **only when needed**:
 
 Reference in CLAUDE.md: `→ read @agent_docs/database-schema.md`
 
-### Custom Commands
-Markdown files in `.claude/commands/` become slash commands:
-- `/project:dev:debug <issue>` - systematic debugging
-- `/project:dev:code-review` - thorough code review  
-- `/project:dev:test <file>` - write tests
-- `/project:git:commit` - conventional commit
-- `/project:git:pr` - create pull request
+---
 
-### Sub-Agents
+## Custom Slash Commands
+
+### Task Management
+| Command | Description |
+|---------|-------------|
+| `/project:task:new <desc>` | Start new task with fresh context |
+| `/project:task:save` | Save progress before ending session |
+| `/project:task:resume` | Resume from saved context |
+
+### Development
+| Command | Description |
+|---------|-------------|
+| `/project:dev:debug <issue>` | Systematic hypothesis-driven debugging |
+| `/project:dev:code-review` | Review recent changes |
+| `/project:dev:test <file>` | Write tests TDD style |
+
+### Git
+| Command | Description |
+|---------|-------------|
+| `/project:git:commit` | Conventional commit with emoji |
+| `/project:git:pr` | Create PR with template |
+
+### Documentation
+| Command | Description |
+|---------|-------------|
+| `/project:docs:update-docs` | Update docs after changes |
+
+---
+
+## Sub-Agents
+
 Specialized Claude instances in `.claude/agents/`:
-- **code-reviewer** - post-change code review
-- **debugger** - systematic debugging
-- **researcher** - read-only codebase exploration
 
-Invoke with: "use the code-reviewer agent to review my changes"
+| Agent | Purpose | Tools |
+|-------|---------|-------|
+| code-reviewer | Post-change code review | Read-only |
+| debugger | Systematic debugging | Read + Write |
+| researcher | Explore codebase, fetch docs | Read-only + Web |
 
-### Task Context Management
-For tasks spanning multiple sessions:
+**Invoke with:** "use the code-reviewer agent to review my changes"
 
-1. Create `docs/tasks/my-task.md` from template
-2. Update progress after each session
-3. Next session: "read @docs/tasks/my-task.md and continue"
-
-For epics (large features):
-1. Create `docs/epics/my-epic.md` from template
-2. Track phases with checkboxes
-3. Claude checks off items as completed
+---
 
 ## Configuration
 
 ### Hooks (settings.json)
-Auto-format on save, block sensitive files, notifications.
-
 Current hooks:
 - **PostToolUse**: Auto-format TS/Python files after edit
 
@@ -102,9 +214,20 @@ Pre-configured:
 - **playwright** - browser automation
 - **filesystem** - enhanced file ops
 
-Add more with `claude mcp add <name> -- <command>`
+Add more: `claude mcp add <name> -- <command>`
+
+---
 
 ## Key Workflows
+
+### Standard Task Flow
+```
+/project:task:new "add user profile page"    # Start
+[work on task...]
+/project:task:save                            # Before ending
+[next session]
+/project:task:resume                          # Continue
+```
 
 ### Explore → Plan → Code → Commit
 ```
@@ -122,18 +245,17 @@ Add more with `claude mcp add <name> -- <command>`
 [Claude analyzes and fixes]
 ```
 
-### Context Recovery
-```
-"Read @docs/tasks/current-task.md and continue from where we left off"
-```
+---
 
 ## Best Practices
 
-1. **Be concise** - all .md files should be information dense
-2. **Use checkboxes** - Claude can check off completed items
-3. **Update context files** - before /clear or ending session
-4. **Scope rules** - don't load Python rules when working on TS
-5. **Verify before done** - always run tests/typecheck
+1. **Use task context** - Always `/project:task:save` before ending session
+2. **Be concise** - All .md files should be information dense
+3. **Use checkboxes** - Claude can check off completed items
+4. **Scope rules** - Don't load Python rules when working on TS
+5. **Verify before done** - Always run tests/typecheck
+
+---
 
 ## Customization
 
@@ -141,3 +263,4 @@ Add more with `claude mcp add <name> -- <command>`
 2. Modify rules in `.claude/rules/` for your conventions
 3. Add project-specific commands in `.claude/commands/`
 4. Fill in `agent_docs/` with your actual patterns
+5. Customize task template in `docs/tasks/_template.md`
