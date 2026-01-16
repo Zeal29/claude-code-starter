@@ -2,6 +2,10 @@
 CLAUDE.local.md
 .claude/settings.local.json
 
+# Hook state files (don't commit counters)
+.claude/.step-counter
+.claude/.last-context-check
+
 # Environment
 .env
 .env.*
