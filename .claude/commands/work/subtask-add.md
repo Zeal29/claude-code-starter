@@ -30,15 +30,12 @@ Format: `<TASK_ID> "subtask name"`
    - Find or create `ST###-ST###-group-name.md`
    - Add subtask entry
 
-5. **Update `_subtasks-index.md`**
+5. **Update `_subtasks-index.md`** (SINGLE SOURCE OF TRUTH)
    - Add to table
    - Update totals
+   - NOTE: Do NOT update task context Subtasks table (removed in new template)
 
-6. **Update task context**
-   - Add to Subtasks table
-   - Recalculate progress
-
-7. **Report**:
+6. **Report**:
 ```
 ✅ Added subtask {{ST_ID}}: "name"
 📁 File: {{FILE_PATH}}

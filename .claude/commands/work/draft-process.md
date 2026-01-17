@@ -25,6 +25,17 @@ Format: `<ID> <draft-folder>`
    - Read and understand context
    - Progressive disclosure: only read what's needed
 
+2.5. **Extract WHY Context** (if "Update epic/task context" is checked):
+   - Read draft Summary and Details sections
+   - Extract key problem statements, decisions, discussion points
+   - Generate Rationale (WHY) section content:
+     - **Problem Context**: What problem is being solved, why it exists
+     - **Approach Rationale**: Why this approach over alternatives
+     - **Key Decisions**: Critical decisions made during discussion
+   - Show extracted content to user for approval/editing
+   - Prepare to insert into context file's Rationale section
+   - Add archive reference comment: `<!-- Extracted from draft: Archive/{{DRAFT_ID}}/ -->`
+
 3. **Execute Intent** (based on checked items):
 
    **If "Create new tasks":**
@@ -36,7 +47,9 @@ Format: `<ID> <draft-folder>`
    - Read current context file
    - Archive current version to `Archive/`
    - Update `_archive-index.md` with change summary
-   - Write updated context
+   - Insert extracted Rationale (WHY) section (from step 2.5) if user approved
+   - Update other fields as needed (Requirements, Approach, etc.)
+   - Write updated context with archive reference comment
 
    **If "Add to Research/":**
    - Create research document in Research/ folder

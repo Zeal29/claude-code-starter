@@ -11,8 +11,24 @@ owner: {{OWNER}}
 external_id: ""  # Jira/Linear/etc ticket ID
 ```
 
-## Objective
-<!-- 1-2 sentence goal -->
+## Objective (WHAT)
+<!-- 1-2 sentence goal - what we're building -->
+
+## Rationale (WHY)
+<!-- Why this epic exists, problem being solved, business value -->
+
+**Problem Context**:
+<!-- What problem are we solving, why does it exist -->
+
+**Approach Rationale**:
+<!-- Why this approach over alternatives -->
+
+**Key Strategic Decisions**:
+<!-- Critical high-level decisions made -->
+
+## Approach (HOW - High Level)
+<!-- Epic-level strategy, major phases, key architectural decisions -->
+<!-- Detail level: High-level phases, NOT implementation steps -->
 
 ## Success Criteria
 - [ ] Criterion 1
@@ -62,3 +78,27 @@ related_branches: []
 | Date | Duration | Task | Notes |
 |------|----------|------|-------|
 | {{DATE}} | - | Setup | Epic created |
+
+---
+
+## Progressive Disclosure Guide
+**This is Layer 1 - Epic Level**
+
+- **Focus**: High-level goals, success criteria, key strategic decisions
+- **Detail**: WHAT (business goal), WHY (strategic rationale, business value), HOW (major phases, architecture)
+- **Delegate to tasks**: All implementation specifics, detailed requirements, file changes
+
+**What belongs at Epic level**:
+- Business objectives and strategic goals
+- Success criteria (outcomes, not implementation)
+- Major phases or milestones
+- Architectural decisions
+- Key dependencies and blockers
+- High-level approach and technology choices
+
+**What to delegate to Task level**:
+- Specific implementation requirements
+- Detailed step-by-step approaches
+- File modifications
+- Session-by-session progress tracking
+- Detailed assumptions and questions
