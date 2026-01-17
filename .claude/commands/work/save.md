@@ -15,9 +15,21 @@ Save progress for: $ARGUMENTS
 
 2. **Read current context**
 
+2.5. **Check for active handoff**
+   - Look for `{WORK_FOLDER}/Handoff/handoff.md`
+   - If exists, read YAML frontmatter:
+     - status (open|in-progress|completed)
+     - steps_total, steps_completed
+     - context_at_creation
+   - Store for display later
+   - If file malformed, skip gracefully with warning
+
 3. **Update Progress Log** - Add new session entry:
 ```markdown
 ### Session {{TODAY}}
+{{IF_HANDOFF_EXISTS}}
+- **Handoff Progress**: {{steps_completed}}/{{steps_total}} steps completed (handoff at {{context_at_creation}}% context)
+{{END_IF}}
 - {{SUMMARY_OF_WORK_DONE}}
 - **Current State**: {{WHAT_IS_WORKING}}
 - **Next Step**: {{WHAT_TO_DO_NEXT}}
@@ -54,6 +66,14 @@ Save progress for: $ARGUMENTS
 - Progress Log: Added session {{DATE}}
 - Requirements: {{X}}/{{Y}} complete
 - Status: {{STATUS}}
+
+{{IF_HANDOFF_EXISTS && STATUS != "completed"}}
+## 📋 Active Checkpoint
+- Handoff Status: {{STATUS}} ({{steps_completed}}/{{steps_total}} steps)
+- Created at: {{context_at_creation}}% context
+- Next steps: See [Handoff/handoff.md]({{WORK_FOLDER}}/Handoff/handoff.md)
+- Use `/work:complete-handoff` when all steps done
+{{END_IF}}
 
 ## Git
 - Branch: {{BRANCH}}

@@ -31,6 +31,7 @@ Read `docs/_index.md` and present:
 ### Quick Stats
 - Total Epics: 2 (1 active, 1 not started)
 - Total Tasks: 8 (3 done, 2 in progress, 3 not started)
+- Active Checkpoints: {{HANDOFF_COUNT}}
 - Pending Drafts: 1
 
 ### Last Activity
@@ -61,8 +62,11 @@ Read epic context and present:
 - **Next**: Email template integration
 
 ### Pending
+- Ready to start: {{READY_TASK_COUNT}}
+- Blocked tasks: {{BLOCKED_TASK_COUNT}}
 - Drafts ready: 0
 - Unanswered questions: 2
+- Active checkpoints: {{HANDOFF_COUNT}} ({{STEPS_DONE}}/{{STEPS_TOTAL}} overall)
 ```
 
 ## Task Status (T### or E###-T###)
@@ -87,6 +91,17 @@ Read task context and present:
 
 ### Last Session
 {{DATE}} - {{SUMMARY}}
+
+{{IF_ACTIVE_HANDOFF}}
+### Active Checkpoint
+- **Status**: {{STATUS}}
+- **Progress**: {{steps_completed}}/{{steps_total}} steps
+- **Created**: {{DATE}} at {{context_at_creation}}% context
+- **Next Step**: {{FIRST_INCOMPLETE_STEP}}
+- **Handoff File**: [Handoff/handoff.md]({{WORK_FOLDER}}/Handoff/handoff.md)
+
+Use `/work:complete-handoff` to mark checkpoint complete.
+{{END_IF}}
 
 ### Git
 - Branch: feature/password-reset

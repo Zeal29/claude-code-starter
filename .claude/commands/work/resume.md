@@ -25,11 +25,20 @@ Resume work: $ARGUMENTS
    - Read Meta, Objective, Current Focus first
    - Summarize status
 
-4. **Check for active drafts**
+4. **Check for active handoff**
+   - Look for `{WORK_FOLDER}/Handoff/handoff.md`
+   - If exists and status in [open, in-progress]:
+     - Parse YAML frontmatter
+     - Parse STEPS section for checkboxes
+     - Count completed `- [x]` vs incomplete `- [ ]`
+     - Extract first 3 incomplete step titles
+   - If malformed, skip with warning
+
+5. **Check for active drafts**
    - Look in `Drafts/` for any `ready` status drafts
    - Alert user if pending drafts exist
 
-5. **Present summary**:
+6. **Present summary**:
 ```
 ## Resuming: {{ID}} - {{NAME}}
 
@@ -38,6 +47,20 @@ Resume work: $ARGUMENTS
 
 ### Last Session
 {{LAST_PROGRESS_LOG_ENTRY}}
+
+{{IF_ACTIVE_HANDOFF}}
+### 🔄 Active Checkpoint
+- **Created**: {{DATE}} at {{context_at_creation}}% context
+- **Progress**: {{steps_completed}}/{{steps_total}} steps
+
+**Next Steps from Handoff:**
+{{LIST_NEXT_3_INCOMPLETE_STEPS}}
+
+→ Full handoff: [Handoff/handoff.md]({{WORK_FOLDER}}/Handoff/handoff.md)
+→ Use `/work:complete-handoff` when done
+
+---
+{{END_IF}}
 
 ### Current State
 - **Working on**: {{CURRENT_STATE}}
@@ -53,7 +76,7 @@ Ready to continue with "{{NEXT_STEP}}"?
 Or tell me what you'd like to do.
 ```
 
-6. **Update master index**
+7. **Update master index**
    - Set "Last worked on" to this item
 
 ## If Target Not Found
