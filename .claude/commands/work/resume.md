@@ -28,11 +28,14 @@ Resume work: $ARGUMENTS
 4. **Check for active handoff**
    - Look for `{WORK_FOLDER}/Handoff/handoff.md`
    - If exists and status in [open, in-progress]:
-     - Parse YAML frontmatter
+     - Parse YAML frontmatter:
+       - If YAML parse fails → Skip handoff, display: "⚠️ Handoff file malformed (invalid YAML), skipping"
+       - If missing required fields → Skip handoff, display: "⚠️ Handoff missing required fields, skipping"
+       - If field types invalid → Skip handoff, display: "⚠️ Handoff data invalid, skipping"
      - Parse STEPS section for checkboxes
      - Count completed `- [x]` vs incomplete `- [ ]`
      - Extract first 3 incomplete step titles
-   - If malformed, skip with warning
+     - Continue normal command execution if parse errors occur
 
 5. **Check for active drafts**
    - Look in `Drafts/` for any `ready` status drafts
@@ -48,6 +51,7 @@ Resume work: $ARGUMENTS
 ### Last Session
 {{LAST_PROGRESS_LOG_ENTRY}}
 
+<!-- Active handoff = Handoff/handoff.md exists AND status in [open, in-progress] -->
 {{IF_ACTIVE_HANDOFF}}
 ### 🔄 Active Checkpoint
 - **Created**: {{DATE}} at {{context_at_creation}}% context

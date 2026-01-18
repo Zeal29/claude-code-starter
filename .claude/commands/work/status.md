@@ -92,6 +92,14 @@ Read task context and present:
 ### Last Session
 {{DATE}} - {{SUMMARY}}
 
+<!-- Parse handoff file with error handling -->
+<!-- Read {WORK_FOLDER}/Handoff/handoff.md if exists -->
+<!-- Parse YAML frontmatter: -->
+<!--   - If YAML parse fails → Skip handoff, display: "⚠️ Handoff file malformed (invalid YAML), skipping" -->
+<!--   - If missing required fields → Skip handoff, display: "⚠️ Handoff missing required fields, skipping" -->
+<!--   - If field types invalid → Skip handoff, display: "⚠️ Handoff data invalid, skipping" -->
+
+<!-- Active handoff = Handoff/handoff.md exists AND status in [open, in-progress] -->
 {{IF_ACTIVE_HANDOFF}}
 ### Active Checkpoint
 - **Status**: {{STATUS}}

@@ -21,13 +21,18 @@ Save progress for: $ARGUMENTS
      - status (open|in-progress|completed)
      - steps_total, steps_completed
      - context_at_creation
+   - Parse YAML frontmatter:
+     - If YAML parse fails → Skip handoff, display: "⚠️ Handoff file malformed (invalid YAML), skipping"
+     - If missing required fields → Skip handoff, display: "⚠️ Handoff missing required fields, skipping"
+     - If field types invalid → Skip handoff, display: "⚠️ Handoff data invalid, skipping"
+     - Continue normal command execution
    - Store for display later
-   - If file malformed, skip gracefully with warning
 
 3. **Update Progress Log** - Add new session entry:
 ```markdown
 ### Session {{TODAY}}
-{{IF_HANDOFF_EXISTS}}
+<!-- Active handoff = Handoff/handoff.md exists AND status in [open, in-progress] -->
+{{IF_ACTIVE_HANDOFF}}
 - **Handoff Progress**: {{steps_completed}}/{{steps_total}} steps completed (handoff at {{context_at_creation}}% context)
 {{END_IF}}
 - {{SUMMARY_OF_WORK_DONE}}
@@ -67,7 +72,7 @@ Save progress for: $ARGUMENTS
 - Requirements: {{X}}/{{Y}} complete
 - Status: {{STATUS}}
 
-{{IF_HANDOFF_EXISTS && STATUS != "completed"}}
+{{IF_ACTIVE_HANDOFF}}
 ## 📋 Active Checkpoint
 - Handoff Status: {{STATUS}} ({{steps_completed}}/{{steps_total}} steps)
 - Created at: {{context_at_creation}}% context
