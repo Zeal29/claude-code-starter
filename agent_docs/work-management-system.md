@@ -53,9 +53,10 @@ docs/
 │       ├── E###-context.md             # Epic context file
 │       ├── Tasks/
 │       │   └── E###-T###-task-name/
-│       │       ├── T###-context.md     # Task context file
+│       │       ├── T###-context.md     # Task context file (SSOT for subtasks table)
 │       │       ├── Subtasks/
-│       │       │   └── _subtasks-index.md  # SINGLE SOURCE OF TRUTH for subtasks
+│       │       │   ├── ST001-name.md   # Optional: substantial subtasks
+│       │       │   └── ST002-name.md   # Optional: if needed
 │       │       ├── Drafts/
 │       │       ├── Archive/
 │       │       └── PRs/
@@ -139,7 +140,7 @@ Why this subtask in the sequence, links to parent task
 Maximum detail - this is the deepest layer
 ```
 
-### 3. Single Source of Truth
+### 3. Single Source of Truth (SSOT)
 
 #### Epic Data
 **Source**: `E###-context.md`
@@ -148,13 +149,14 @@ Maximum detail - this is the deepest layer
 
 #### Task Data
 **Source**: `T###-context.md`
-**Subtasks Reference**: `→ Subtasks: See Subtasks/_subtasks-index.md`
-**NO Subtasks table in context.md** (new template removes this)
+**Subtasks Table**: Inside `## Subtasks` section (SINGLE SOURCE OF TRUTH)
+**Table Format**: `| ID | Name | Status | File |`
+**File Column**: `[ST001-name.md](./Subtasks/ST001-name.md)` if file exists, `—` if inline-only
 
 #### Subtask Data
-**Source**: `Subtasks/_subtasks-index.md` (SINGLE SOURCE OF TRUTH)
-**Individual Files**: Optional (for substantial subtasks)
-**NOT in task context.md** (prevents duplicate storage, sync issues)
+**Primary**: Subtasks table in parent task-context.md (status, tracking)
+**Optional**: Individual `ST###.md` files (for substantial subtasks only)
+**File Semantics**: Link in File column = individual file exists; "—" = inline-only (no file)
 
 #### State Machine Fix
 
@@ -164,17 +166,62 @@ subtask-add →
   1. Update _subtasks-index.md
   2. Update task context Subtasks table
 
-If #2 fails, #1 may have succeeded = out of sync
+Out of sync issue: Table could drift from index
 Example: E001-T003 has 9 subtasks in context.md, 3 in _subtasks-index.md
 ```
 
 **New (Fixed)**:
 ```
-subtask-add →
-  1. Update _subtasks-index.md ONLY
+subtask-add → 1. Update task-context.md Subtasks table ONLY
 
 Single update point = no sync issues possible
-Task context just references: "→ Subtasks: See Subtasks/_subtasks-index.md"
+No separate _subtasks-index.md files
+```
+
+### 3a. Status Updates (SSOT for Subtasks)
+
+**Subtask Status SSOT**: Subtasks table in task-context.md is the SINGLE SOURCE OF TRUTH for status.
+
+**Authority Hierarchy**:
+1. **Table (Authoritative)**: Status in Subtasks table is THE current status
+2. **Individual ST###.md file (Cache)**: Can have status field, but can become stale
+3. **Allowed drift**: Individual file status can lag behind table by 1 session
+4. **Never allowed**: Table status lagging behind individual file
+
+**Why This Pattern**:
+- Single update point: Commands only update table
+- Prevents sync issues: No duplication possible
+- Clear authority: Everyone knows table is truth
+- Performance: Don't need to read individual files to see status
+
+**Commands That Update Status**:
+- `/work:subtask-add`: Adds new row, sets status = ⚪
+- `/work:save`: Updates status based on user input
+- Manual edits: Update table directly (not individual files)
+
+**Status Values** (Subtasks table):
+- `⚪` (ready) - Not yet started
+- `🟡` (in-progress) - Currently being worked
+- `🟢` (done) - Complete and verified
+- `🔴` (blocked) - Waiting on dependency/question
+- `⬛` (archived) - Closed, moved to archive
+
+**Individual File YAML** (Optional, cache only):
+- Can contain `status: in-progress` field
+- Used for context when working on subtask
+- Updated by `/work:save` after session
+- Can be out of date (not an issue)
+- **NOT** read by commands to determine truth
+
+**Update Flow**:
+```
+Session starts → Read table status ✅
+                ↓
+           Work on subtask
+                ↓
+       Call /work:save → Updates table ✅
+                ↓
+         Optional: Update individual file ✅ (cache)
 ```
 
 ### 4. Draft Workflow (Never Edit Context Directly)
@@ -249,15 +296,15 @@ open → ready → processing → completed
 # Rationale extracted from draft discussion
 ```
 
-### Adding Subtasks (No Duplication)
+### Adding Subtasks (All in Task Context Table)
 
 ```bash
 /work:subtask-add E001-T001 "configure passport strategy"
 /work:subtask-add E001-T001 "add OAuth routes"
 /work:subtask-add E001-T001 "test OAuth flow"
-# All 3 only in _subtasks-index.md, NOT in task context
+# All 3 added to task-context.md Subtasks table only
 /work:validate E001-T001
-# → ✅ Consistent (new format)
+# → ✅ Consistent (all subtasks in table)
 ```
 
 ### Resuming Work
@@ -315,8 +362,8 @@ When Claude processes a draft:
 | Command | Updates | Description |
 |---------|---------|-------------|
 | `/work:epic-new` | E###-context.md, _index.md | Creates epic with WHAT/WHY/HOW template |
-| `/work:task-new` | T###-context.md, _subtasks-index.md, epic context, _index.md | Creates task with Rationale section, reference line (no Subtasks table) |
-| `/work:subtask-add` | _subtasks-index.md ONLY | Adds subtask to index (does NOT update task context) |
+| `/work:task-new` | T###-context.md, epic context, _index.md | Creates task with Rationale section, empty Subtasks table |
+| `/work:subtask-add` | T###-context.md Subtasks table | Adds row to task context table (Status/File auto-set) |
 
 ### Update Commands
 
@@ -457,21 +504,21 @@ Detect state machine inconsistencies (like E001-T003 with 9 vs 3 subtasks).
 - No missing task folders
 
 **Task Level**:
-- Subtasks in _subtasks-index.md have corresponding files (if individual)
-- No orphaned subtask files
-- **Legacy format detection**: Warns if task context has Subtasks table
-- **Mismatch detection**: Compares old Subtasks table vs _subtasks-index.md if both exist
+- Subtasks table exists in task-context.md
+- File column consistency: Links point to existing files, dashes have no files
+- No orphaned subtask files (files without table entries)
+- **Legacy format detection**: Warns if _subtasks-index.md found (old pattern)
 
 ### Report Format
 - ✅ Consistent: All good
-- ⚠️ Legacy format: Using old template (optional migration)
-- ❌ MISMATCH: Out of sync (broken state machine)
+- ⚠️ Legacy format: Found old _subtasks-index.md (use --migrate flag to consolidate)
+- ❌ MISMATCH: File column inconsistent with filesystem
 
-### Proof of Detection
-E001-T003 example:
-- Context.md Subtasks table: S1-S9 (9 subtasks)
-- _subtasks-index.md: S1-S3 (3 subtasks)
-- `/work:validate E001-T003` → reports "MISMATCH"
+### Example Validation
+```bash
+/work:validate E001-T001
+# → ✅ Consistent: 5 subtasks, File column matches filesystem
+```
 
 ---
 
@@ -527,16 +574,114 @@ E001-T003 example:
 - Document gotchas and edge cases
 - Specific verification steps
 - Keep atomic (single focused action)
+- Optional: Create ST###.md file for substantial subtasks
 
 **Include**:
-- Single focused action
-- Exact file paths and line numbers
+- Single focused action (15min-2hr ideal)
+- Exact file paths and line numbers (in ST###.md if file exists)
 - Specific code changes (can include code snippets)
 - Step-by-step implementation
 - Technical notes, gotchas, edge cases
 - Verification steps
 
+**Inline vs. File**:
+- Inline (—): Simple tasks, note in table only
+- File link: Substantial tasks, create ST###.md with full details
+
 **No delegation** - this is the deepest layer.
+
+### Context Loading Strategy (3-Layer Pattern)
+
+**When resuming work, Claude uses progressive disclosure to load only necessary context** (token efficiency).
+
+**Layer 3 Load (Resuming Subtask)**:
+```
+WORKFLOW: /work:resume ST001
+
+1. Load: docs/_index.md
+   - Find which task ST001 belongs to (search)
+
+2. Load: Parent task T###-context.md
+   - Read full task to understand context
+   - Specifically: Objective, Rationale, Approach
+   - Find ST001 in Subtasks table (row 1)
+
+3. Load: Individual ST001.md (if file exists)
+   - Get detailed implementation steps
+   - Specific files to modify
+   - Implementation notes, gotchas
+
+4. NOT loaded: Other subtasks (not needed for this session)
+5. NOT loaded: Epic (parent context, focus on task level)
+
+RESULT: ~2.5-3.5k tokens for full subtask context
+```
+
+**Layer 2 Load (Resuming Task)**:
+```
+WORKFLOW: /work:resume E001-T001
+
+1. Load: docs/_index.md
+   - Find parent epic (search)
+
+2. Load: Parent epic E001-context.md
+   - Read full epic for strategic context
+   - Find T001 in Tasks Overview table
+
+3. Load: Task E001-T001-context.md
+   - Full task details: Objective, Rationale, Approach
+   - Subtasks table (status overview, no individual file details)
+   - Don't load individual ST###.md files (not needed for task-level work)
+
+4. NOT loaded: Individual subtasks (unless explicitly working on specific subtask)
+
+RESULT: ~3-4k tokens for full task context
+```
+
+**Layer 1 Load (Epic or Overview)**:
+```
+WORKFLOW: /work:resume E001
+
+1. Load: docs/_index.md
+   - See all epics and tasks at a glance
+   - Strategic overview
+
+2. Load: Epic E001-context.md
+   - Strategic decisions, approach
+   - Tasks Overview table
+   - NOT: Individual task details
+
+3. NOT loaded: Task or subtask details (too deep)
+
+RESULT: ~1-1.5k tokens for strategic overview
+```
+
+**Token Budget** (Total across layers):
+- Layer 3 (Subtask): ~2.5-3.5k tokens
+- Layer 2 (Task): ~3-4k tokens
+- Layer 1 (Epic): ~1-1.5k tokens
+- **Total available**: ~10k tokens for deep work (subtask + task + epic)
+- **Reserve for implementation**: 5-10k tokens for coding
+
+**Optimization Rules**:
+1. Load only what you need for current session
+2. If getting stuck on subtask, load parent task (context)
+3. If task approach unclear, load parent epic (strategy)
+4. Subtask files optional - only load if table status unclear or need detailed steps
+5. Never load Archive/ unless comparing versions or recovering from mistakes
+
+**What NOT to Load** (Token Waste):
+- ❌ All subtasks when working on single subtask
+- ❌ All tasks when working on single task
+- ❌ Epic details when working on subtask details
+- ❌ Archive/ folder (historical versions, noise)
+- ❌ Entire Task Overview when only working on 1 task
+
+**Hint for Tooling**:
+When `/work:resume` returns output, it should:
+1. Load Layer 1 (always): docs/_index.md
+2. Load Layer 2 (context): Relevant context file
+3. Suggest: "Run `/work:resume ST001` to load individual subtask details" if user needs Layer 3
 
 ### Knowledge Preservation
 - Use drafts for lengthy discussions
@@ -577,24 +722,25 @@ E001-T003 example:
 - `save`: Works on both old and new format
 - `validate`: Detects format version, reports appropriately
 
-### Migration (Optional)
-User can manually:
-1. Add Rationale (WHY) sections to context files
-2. Remove Subtasks table from task context
-3. Verify subtasks in _subtasks-index.md
-4. Add Progressive Disclosure Guide
+### Migration Path (For Old Tasks)
+Old tasks using `_subtasks-index.md` can be migrated:
+1. Copy subtask table from _subtasks-index.md to task-context.md Subtasks section
+2. Delete _subtasks-index.md file
+3. Update File column: link if ST###.md exists, "—" if inline-only
+4. Verify with `/work:validate [TASK]`
 
-Not required for functionality - old format remains supported.
+Can use `/work:validate --migrate` for automated consolidation.
+Not required - old format continues to work with warnings.
 
 ---
 
 ## Troubleshooting
 
 ### Subtask Sync Issues
-**Symptom**: Task context Subtasks table doesn't match _subtasks-index.md
-**Cause**: Old template had duplicate storage
-**Fix**: Migrate to new template (remove Subtasks table, add reference line)
-**Detection**: `/work:validate` reports mismatch
+**Symptom**: File column doesn't match filesystem (link points nowhere or file missing link)
+**Cause**: Manual edits or incomplete subtask operations
+**Fix**: Update File column to match: link if ST###.md exists, "—" if not
+**Detection**: `/work:validate` reports mismatch, use `--sync` to auto-fix
 
 ### Information Loss
 **Symptom**: Can't remember why we made a decision
@@ -608,11 +754,75 @@ Not required for functionality - old format remains supported.
 **Fix**: Move detail down to subtasks, keep task/epic high-level
 **Guide**: Use Progressive Disclosure Guide in templates
 
+### Subtask Granularity Guidelines
+
+**Ideal Subtask Size**: 15 minutes to 2 hours
+
+**How to Evaluate**:
+
+| Aspect | Too Small | Just Right | Too Large |
+|--------|-----------|-----------|-----------|
+| **Duration** | < 15min | 15min-2hr | > 2hr |
+| **Scope** | Trivial 1-line change | 1-3 files, atomic action | Spans multiple files, multiple concerns |
+| **Verification** | Obvious (no test needed) | Clear test case | Requires integration testing |
+| **Dependencies** | Depends on other subtasks | Mostly independent | Many internal dependencies |
+| **Cognitive Load** | Trivial | Single focus area | Context switching required |
+
+**Decision Tree**:
+
+1. **Can the subtask be completed and verified in < 15 minutes?**
+   - YES → Merge with adjacent subtask (too granular)
+   - NO → Continue to step 2
+
+2. **Will the subtask take > 2 hours?**
+   - YES → Split into multiple subtasks (too large)
+   - NO → Looks good, continue to step 3
+
+3. **Does the subtask have a single, focused purpose?**
+   - YES → Atomic ✅
+   - NO → Split by concern (each subtask = one concern)
+
+4. **Can it be tested independently?**
+   - YES → Good granularity ✅
+   - NO → May need to merge with dependent subtask
+
+**Examples**:
+
+✅ **Good Granularity (15min-2hr)**:
+- "Add validation for email field in signup form" (1 file, 1 concern, 30min)
+- "Write unit tests for UserService.findOrCreate()" (1 file, clear verification, 1hr)
+- "Refactor error handler middleware to use custom AppError" (1 file, 1 concern, 1.5hr)
+
+❌ **Too Small** (merge adjacent):
+- "Add import statement" (should be part of larger subtask)
+- "Change variable name from `x` to `xCoord`" (trivial rename, merge)
+- "Update comment" (merge with code change)
+
+❌ **Too Large** (split into multiple):
+- "Implement full OAuth flow including Google, GitHub, Discord" (3 separate subtasks)
+- "Refactor entire auth system" (break into: strategy config, routes, user service, tests)
+- "Build search feature with filters, sorting, pagination" (3-4 subtasks)
+
+**When to Create Individual ST###.md File**:
+- **YES**: Subtask is substantial (> 30 min, complex logic, multiple files affected)
+- **NO**: Subtask is simple (< 15 min, straightforward change)
+- **Maybe**: Use discretion based on implementation complexity
+
+**Inline vs. File Decision**:
+```
+Is subtask substantial?
+├─ YES (30min+, complex logic)
+│  └─ Create ST###.md file, set File column = [ST###-name.md](./Subtasks/ST###-name.md)
+└─ NO (< 30min, straightforward)
+   └─ Keep inline, set File column = —
+```
+
 ### Detecting Broken State
 ```bash
-/work:validate E001-T003
-# → ❌ MISMATCH: 9 subtasks in context.md, 3 in index
-# Action: Migrate to new template format
+/work:validate E001-T001
+# → ❌ MISMATCH: File column inconsistent (3 links, 0 files)
+# Action: Update File column - remove broken links or create missing files
+# OR use: /work:validate E001-T001 --sync  # Auto-fix by removing broken links
 ```
 
 ---

@@ -37,8 +37,6 @@ external_id: ""  # Jira/Linear/etc ticket ID
 <!-- Files Claude should read for context -->
 - `path/to/file.ts` - why relevant
 
-→ Subtasks: See `Subtasks/_subtasks-index.md`
-
 ## Approach (HOW - Detailed)
 <!-- Task-level implementation plan, step-by-step approach -->
 <!-- Detail level: Detailed steps, file modifications, testing strategy -->
@@ -48,6 +46,43 @@ external_id: ""  # Jira/Linear/etc ticket ID
 - [ ] Code reviewed
 - [ ] No TypeScript errors
 - [ ] Docs updated (if needed)
+
+## Subtasks
+<!-- Layer 2 → Layer 3: High-level breakdown with links to detailed implementation -->
+
+| ID | Name | Status | File |
+|----|------|--------|------|
+| — | (No subtasks yet) | — | — |
+
+→ Full details: See individual files in `Subtasks/` folder
+
+**Notes**:
+<!-- Subtask grouping logic, dependencies, or execution order -->
+
+## Progress Tracking (3 Levels Explained)
+
+**There are 3 places to track progress. Each serves a different purpose - DON'T DUPLICATE**:
+
+1. **Task Progress Log** (this file, "Progress Log" section below)
+   - WHAT: Session-by-session notes about task completion
+   - WHY: Preserve session context, help next Claude understand what happened
+   - HOW: Update after `/work:save`, write session-level summaries
+   - EXAMPLE: "Session 2026-01-16: Completed requirements 1-5. Still blocked on API integration until T002 merges."
+
+2. **Subtasks Table** (Status column above, "Subtasks" section)
+   - WHAT: Current status of each subtask (⚪🟡🟢🔴⬛)
+   - WHY: Quick glance at task completion percentage
+   - HOW: Updated by `/work:save` and `/work:subtask-add`, reflects current progress
+   - EXAMPLE: 8 subtasks total, 5 done (🟢), 3 in-progress (🟡) = 62% complete
+
+3. **Subtask File Progress Log** (if ST###.md file exists)
+   - WHAT: Implementation-level notes within individual subtask file
+   - WHY: Preserve implementation details and debugging steps for deep work
+   - HOW: Updated while working on subtask (optional, cache-level detail)
+   - EXAMPLE: "Tried approach A (failed due to race condition), switched to approach B (working)"
+
+**DON'T**: Update all 3 places (causes duplication)
+**DO**: Use each for its intended level of detail
 
 ## Dependencies
 - **Blocked by**: None

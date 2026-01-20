@@ -42,14 +42,23 @@ updated: {{DATE}}
 - [ ] Meets acceptance criteria
 
 ## Progress Log
-<!-- For multi-session subtask work - simpler than task Progress Log -->
+<!-- For multi-session subtask work - OPTIONAL, only if needed -->
+<!-- See parent task for task-level progress tracking -->
+<!-- Status in parent Subtasks table is source of truth (SSOT) -->
 
 **Current State**: Not started
 **Next Step**:
 **Blocker**: None
 
 **Notes**:
-<!-- Quick notes on progress, issues encountered -->
+<!-- Quick notes on progress, issues encountered, implementation decisions -->
+<!-- This is CACHE-level detail - can lag behind table status -->
+
+**Note on Progress Tracking**:
+- **Source of Truth**: Parent task's Subtasks table Status column (has authority)
+- **This file**: Optional cache for implementation details
+- **Update frequency**: After session work, not mandatory
+- **Sync**: Parent table status takes precedence if this file is stale
 
 ---
 

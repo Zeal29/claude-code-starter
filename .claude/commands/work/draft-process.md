@@ -61,9 +61,11 @@ Format: `<ID> <draft-folder>`
    - Or create new file if needed
 
    **If "Create subtasks":**
-   - Parse subtask definitions
-   - Create subtask files in Subtasks/
-   - Update `_subtasks-index.md`
+   - Parse subtask definitions from draft
+   - For each subtask:
+     - Add row to task-context.md "## Subtasks" table
+     - If substantial: Create individual ST###-name.md file, update File column with link
+     - If simple: Table entry only (File column = "—")
 
 4. **Update Processing Log** in draft.md:
    - Set `processed_by`, `processed_at`, `status`

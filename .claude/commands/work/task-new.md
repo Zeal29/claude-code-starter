@@ -24,8 +24,7 @@ docs/epics/E###-name/Tasks/E###-T###-task-name/
 ├── Drafts/
 ├── Archive/
 │   └── _archive-index.md
-├── Subtasks/
-│   └── _subtasks-index.md
+├── Subtasks/    # Empty folder (subtasks added later)
 ├── PRs/
 └── Debug/
 ```

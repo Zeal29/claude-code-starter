@@ -7,11 +7,11 @@ Validate work items: $ARGUMENTS (optional: specific epic/task ID)
 
 ## Purpose
 
-Validates consistency between context files and index files to detect state machine issues like:
-- Epic context tasks table vs Tasks/ folder contents
-- Task context subtasks table vs _subtasks-index.md (detects duplicate storage)
-- Orphaned files vs index entries
-- Legacy format detection
+Validates consistency of work items to detect state machine issues:
+- Epic context tasks table vs Tasks/ folder contents (orphaned tasks)
+- Task context subtasks table vs Subtasks/ folder (File column accuracy)
+- File column consistency: links point to real files, dashes have no files
+- Legacy format detection (_subtasks-index.md files)
 
 ## Process
 
@@ -29,14 +29,17 @@ Validates consistency between context files and index files to detect state mach
 
 3. **For each task** (if in scope):
    - Read task context file
-   - Check if task has Subtasks table (legacy format detection)
-   - Read `Subtasks/_subtasks-index.md`
-   - Extract subtasks from index
-   - Check for individual subtask files (if referenced)
+   - Extract `## Subtasks` table
+   - Glob Subtasks/ folder for ST###.md files
+   - Check File column consistency (3 checks):
+     - **Check 1**: Every link in File column → verify file exists
+     - **Check 2**: Every ST###.md file in Subtasks/ → verify table entry exists
+     - **Check 3**: Every em-dash (—) → verify no corresponding ST###.md file
+   - Check for legacy _subtasks-index.md (if found, report warning)
    - Report:
-     - If task has Subtasks table: "⚠️ Legacy format - task context has Subtasks table (should only be in _subtasks-index.md)"
-     - If subtask count mismatch: "❌ MISMATCH"
-     - If all consistent: "✅ Consistent"
+     - "⚠️ Legacy format: Found _subtasks-index.md" (old pattern, optional migration)
+     - "❌ MISMATCH: File column inconsistent" (broken state)
+     - "✅ Consistent" (all checks pass)
 
 4. **Generate report**
 
@@ -55,24 +58,29 @@ Validates consistency between context files and index files to detect state mach
 
 ## Tasks
 
-❌ E001-T003: integration-with-work-commands
-   - Subtasks in context.md table: 9 (S1-S9)
-   - Subtasks in _subtasks-index.md: 3 (S1-S3)
-   - Status: MISMATCH - Context table out of sync with index
-   - Action: Update to new template format (remove Subtasks table from context.md)
-
-⚠️ T001: fix-task-and-subtask-behaviour
-   - Subtasks in _subtasks-index.md: 4
-   - Subtask files: 0 (using grouped file strategy)
-   - Legacy format: YES (has Subtasks table in context.md)
-   - Status: Consistent but using old template
-   - Action: Consider migrating to new template (optional)
-
-✅ E003-T001: google-oauth
-   - Subtasks in _subtasks-index.md: 5
-   - Subtask files: 5 individual files
+✅ E001-T001: context-loading-strategy
+   - Subtasks in table: 5
+   - Subtask files: 3 ([ST003.md](./Subtasks/ST003.md), [ST004.md](./Subtasks/ST004.md), [ST005.md](./Subtasks/ST005.md))
+   - Inline subtasks: 2 (ST001, ST002 → File column = —)
+   - File column: Consistent (3 links valid, 2 dashes correct)
    - Legacy format: NO
-   - Status: Consistent (new format)
+   - Status: Consistent
+
+❌ E001-T003: migration-in-progress
+   - Subtasks in table: 8
+   - Subtask files: 3
+   - File column issues:
+     - Link to [ST006.md](./Subtasks/ST006.md) but file doesn't exist
+     - File ST007.md exists but not in table (orphaned)
+   - Status: MISMATCH - File column inconsistent
+   - Action: Use /work:validate --sync to auto-fix broken links
+
+⚠️ T001: legacy-task-format
+   - Subtasks in table: 4
+   - Legacy _subtasks-index.md: Found (old pattern)
+   - File column: Consistent but old format used
+   - Status: Consistent but using legacy pattern
+   - Action: Optional - use /work:validate --migrate to consolidate to new format
 
 ================================
 Summary:
@@ -83,24 +91,40 @@ Summary:
 
 ## Implementation Notes
 
-**Detecting Subtasks Table in Context**:
-- Use Grep to search for `## Subtasks` followed by table format (`| ID | Name |`)
-- If found: Legacy format
-- If not found: New format (reference line only)
+**Detecting Subtasks Table**:
+- Grep for `## Subtasks` section followed by table (`| ID | Name | Status | File |`)
+- Extract all rows between header and next section
+- Parse File column: extract links and em-dashes
 
-**Counting Subtasks**:
-- Parse `_subtasks-index.md` table rows (exclude header/separator)
-- Count non-empty rows
+**File Column Validation (3 Checks)**:
+1. **Check 1 - Broken Links**: For each `[ST###.md](./Subtasks/...)` link:
+   - Extract path from link (e.g., `./Subtasks/ST003.md`)
+   - Verify file exists at that path
+   - If not: Report "Broken link: [ST###.md] points to missing file"
+2. **Check 2 - Missing Links**: For each ST###.md file in Subtasks/ folder:
+   - Find corresponding row in table (matching ST### ID)
+   - If row exists, verify File column has link to this file
+   - If row missing: Report "Orphaned file: ST###.md exists but no table entry"
+3. **Check 3 - Dash Verification**: For each em-dash (—) in File column:
+   - Verify NO ST###.md file exists for that subtask ID
+   - If file exists: Report "Dash inconsistent: ST###.md exists but File column = —"
 
-**Detecting Individual Files**:
-- Glob for `Subtasks/*.md` excluding `_subtasks-index.md`
-- Compare file count with index entries
+**Legacy Format Detection**:
+- Glob for `_subtasks-index.md` in Subtasks/ folder
+- If found: Report "⚠️ Legacy format: Found _subtasks-index.md (use --migrate to consolidate)"
 
 ## Exit Codes
 
 - 0: All consistent
-- 1: Mismatches found (state machine broken)
+- 1: Mismatches found (state machine broken, File column inconsistent)
 - 2: Legacy format detected (warning, not error)
+
+## Flags
+
+- `--sync`: Auto-fix File column mismatches (remove broken links, add missing links)
+- `--migrate`: Consolidate old _subtasks-index.md → new table format
+- `--full`: Validate all items in project
+- `--verbose`: Show detailed validation steps
 
 ## Examples
 
@@ -114,4 +138,13 @@ Summary:
 # Validate specific task
 /work:validate E001-T003
 /work:validate T001
+
+# Auto-fix File column inconsistencies
+/work:validate E001-T001 --sync
+
+# Consolidate legacy _subtasks-index.md to new format
+/work:validate T001 --migrate
+
+# Full validation with detailed output
+/work:validate --full --verbose
 ```

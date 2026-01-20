@@ -75,7 +75,19 @@ Using `passport-google-oauth20` strategy because it's the official, well-maintai
 - `src/views/login.ejs` - Login page template, add Google OAuth button
 - `.env.example` - Environment variables documentation
 
-→ Subtasks: See `Subtasks/_subtasks-index.md`
+## Subtasks
+<!-- SSOT: This table is the single source of truth for subtask tracking -->
+<!-- File column: Link = individual ST###.md exists, "—" = inline-only (no file) -->
+| ID | Name | Status | File |
+|----|------|--------|------|
+| ST001 | Install passport-google-oauth20 | 🟢 | — |
+| ST002 | Google Cloud Console setup | 🟢 | — |
+| ST003 | Configure Passport strategy | 🟢 | [ST003-configure-passport.md](./Subtasks/ST003-configure-passport.md) |
+| ST004 | Add OAuth routes | 🟢 | [ST004-oauth-routes.md](./Subtasks/ST004-oauth-routes.md) |
+| ST005 | Implement account linking logic | 🟢 | [ST005-account-linking.md](./Subtasks/ST005-account-linking.md) |
+| ST006 | Add UI button | 🟡 | — |
+| ST007 | Test OAuth flow | ⚪ | — |
+| ST008 | Documentation | ⚪ | — |
 
 ## Approach (HOW - Detailed)
 <!-- How we're solving this - helps future Claude understand decisions -->
